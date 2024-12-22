@@ -6,103 +6,101 @@
 /*   By: tuthayak <tuthayak@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/28 18:07:26 by tuthayak          #+#    #+#             */
-/*   Updated: 2024/12/19 16:41:06 by tuthayak         ###   ########.fr       */
+/*   Updated: 2024/12/22 22:43:24 by tuthayak         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static char	*_set_line(char *line);
-static char	*_fill_line_buffer(int fd, char *left_c, char *buffer);
-static char	*ft_strchr(char *s, int c);
+static char	*extract_line(char *buffer);
+static char	*update_buffer(char *buffer);
+static char	*read_and_store(int fd, char *buffer);
+static char	*join_and_free(char *buffer, char *read_buffer);
 
 char	*get_next_line(int fd)
 {
-	static char	*left_c;
+	static char	*buffer;
 	char		*line;
-	char		*buffer;
 
-	buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
-	{
-		free(left_c);
-		free(buffer);
-		left_c = NULL;
-		buffer = NULL;
 		return (NULL);
-	}
+	buffer = read_and_store(fd, buffer);
 	if (!buffer)
 		return (NULL);
-	line = _fill_line_buffer(fd, left_c, buffer);
-	free(buffer);
-	buffer = NULL;
-	if (!line)
-		return (NULL);
-	left_c = _set_line(line);
+	line = extract_line(buffer);
+	buffer = update_buffer(buffer);
 	return (line);
 }
 
-static char	*_fill_line_buffer(int fd, char *left_c, char *buffer)
+static char	*read_and_store(int fd, char *buffer)
 {
-	ssize_t	b_read;
-	char	*tmp;
+	char	*read_buffer;
+	ssize_t	bytes_read;
 
-	b_read = 1;
-	while (b_read > 0)
+	read_buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
+	if (!read_buffer)
+		return (NULL);
+	bytes_read = 1;
+	while (!ft_strchr(buffer, '\n') && bytes_read > 0)
 	{
-		b_read = read(fd, buffer, BUFFER_SIZE);
-		if (b_read == -1)
+		bytes_read = read(fd, read_buffer, BUFFER_SIZE);
+		if (bytes_read < 0)
 		{
-			free(left_c);
+			free(read_buffer);
 			return (NULL);
 		}
-		else if (b_read == 0)
-			break ;
-		buffer[b_read] = 0;
-		if (!left_c)
-			left_c = ft_strdup("");
-		tmp = left_c;
-		left_c = ft_strjoin(tmp, buffer);
-		free(tmp);
-		tmp = NULL;
-		if (ft_strchr(buffer, '\n'))
+		read_buffer[bytes_read] = '\0';
+		buffer = join_and_free(buffer, read_buffer);
+		if (!buffer)
 			break ;
 	}
-	return (left_c);
+	free(read_buffer);
+	return (buffer);
 }
 
-static char	*_set_line(char *line_buffer)
+static char	*join_and_free(char *buffer, char *read_buffer)
 {
-	char	*left_c;
-	ssize_t	i;
+	char	*temp;
 
-	i = 0;
-	while (line_buffer[i] != '\n' && line_buffer[i] != '\0')
-		i++;
-	if (line_buffer[i] == 0 || line_buffer[1] == 0)
+	temp = buffer;
+	buffer = ft_strjoin(temp, read_buffer);
+	free(temp);
+	return (buffer);
+}
+
+static char	*extract_line(char *buffer)
+{
+	char	*line;
+	size_t	i;
+
+	if (!buffer || buffer[0] == '\0')
 		return (NULL);
-	left_c = ft_substr(line_buffer, i + 1, ft_strlen(line_buffer) - 1);
-	if (*left_c == 0)
-	{
-		free(left_c);
-		left_c = NULL;
-	}
-	line_buffer[i + 1] = 0;
-	return (left_c);
+	i = 0;
+	while (buffer[i] && buffer[i] != '\n')
+		i++;
+	if (buffer[i] == '\n')
+		line = ft_substr(buffer, 0, i + 1);
+	else
+		line = ft_substr(buffer, 0, i);
+	return (line);
 }
 
-static char	*ft_strchr(char *s, int c)
+static char	*update_buffer(char *buffer)
 {
-	char	chr;
+	char	*new_buffer;
+	size_t	i;
 
-	chr = c;
-	while (*s)
+	if (!buffer)
+		return (NULL);
+	i = 0;
+	while (buffer[i] && buffer[i] != '\n')
+		i++;
+	if (buffer[i] == '\0')
 	{
-		if (*s == chr)
-			return (s);
-		s++;
+		free(buffer);
+		return (NULL);
 	}
-	if (chr == '\0')
-		return (s);
-	return (NULL);
+	new_buffer = ft_strdup(buffer + i + 1);
+	free(buffer);
+	return (new_buffer);
 }
