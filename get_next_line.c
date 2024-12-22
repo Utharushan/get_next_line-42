@@ -6,7 +6,7 @@
 /*   By: tuthayak <tuthayak@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/28 18:07:26 by tuthayak          #+#    #+#             */
-/*   Updated: 2024/12/22 15:20:42 by tuthayak         ###   ########.fr       */
+/*   Updated: 2024/12/22 15:24:58 by tuthayak         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,20 +105,4 @@ static char	*ft_strchr(char *s, int c)
 	if (chr == '\0')
 		return (s);
 	return (NULL);
-}
-
-#include <stdio.h>
-
-int			main(int ac, char **av)
-{
-	int		fd;
-	char	*line;
-
-	line = NULL;
-	fd = open(av[ac-1], O_RDONLY);
-	while (get_next_line(fd, &line))
-	{
-		ft_putendl(line);
-	}
-	close(fd);
 }
