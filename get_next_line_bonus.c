@@ -12,7 +12,7 @@
 
 #include "get_next_line_bonus.h"
 
-static char	*extract_line(char **stash)
+char	*extract_line(char **stash)
 {
 	char	*line;
 	char	*temp;
@@ -38,7 +38,7 @@ static char	*extract_line(char **stash)
 	return (line);
 }
 
-static char	*read_to_stash(int fd, char *stash)
+char	*read_to_stash(int fd, char *stash)
 {
 	char	*buffer;
 	ssize_t	bytes_read;
@@ -67,9 +67,9 @@ static char	*read_to_stash(int fd, char *stash)
 
 char	*get_next_line(int fd)
 {
-	static char	*stash[4096];
+	static char	*stash[1024];
 
-	if (fd < 0 || fd >= 4096 || BUFFER_SIZE <= 0)
+	if (fd < 0 || fd >= 1024 || BUFFER_SIZE <= 0)
 		return (NULL);
 	stash[fd] = read_to_stash(fd, stash[fd]);
 	if (!stash[fd])
